@@ -1,0 +1,46 @@
+package com.cibc.app.di
+
+import android.content.Context
+import com.cibc.services.caching.preferencePlugin.EncryptedPreferencePlugin
+import com.cibc.services.caching.preferencePlugin.EncryptedPreferencePluginImpl
+import io.mockk.mockk
+import org.junit.After
+import org.junit.Before
+import org.junit.Test
+import org.koin.core.context.startKoin
+import org.koin.core.context.stopKoin
+import org.koin.dsl.module
+import org.koin.test.KoinTest
+import org.koin.test.inject
+import kotlin.test.assertTrue
+
+class EncryptedPreferencePluginIntegrationTest : KoinTest {
+
+    private val encryptedPreferencePlugin: EncryptedPreferencePlugin by inject()
+
+    @Before
+    fun setUp() {
+        val context = mockk<Context>(relaxed = true)
+        
+        startKoin {
+            modules(
+                module {
+                    single { context }
+                },
+                appModule
+            )
+        }
+    }
+
+    @After
+    fun tearDown() {
+        stopKoin()
+    }
+
+    @Test
+    fun `test EncryptedPreferencePlugin is initialized with correct implementation`() {
+        // Verify that the EncryptedPreferencePlugin uses EncryptedPreferencePluginImpl
+        assertTrue(encryptedPreferencePlugin is EncryptedPreferencePlugin)
+        assertTrue(encryptedPreferencePlugin.encryptedPreferencePlugin is EncryptedPreferencePluginImpl)
+    }
+}
