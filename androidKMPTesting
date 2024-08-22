@@ -1,3 +1,69 @@
+// AndroidLocaleTest.kt
+package com.cibc.services.utilities
+
+import org.junit.Before
+import org.junit.Test
+import java.util.Locale
+import kotlin.test.assertEquals
+
+class AndroidLocaleTest {
+
+    @Before
+    fun setup() {
+        // Set default locale to English for consistent testing
+        Locale.setDefault(Locale("en"))
+    }
+
+    @Test
+    fun testGetLangForCA() {
+        assertEquals("en", getLang("CA"))
+        
+        // Test for French
+        Locale.setDefault(Locale("fr"))
+        assertEquals("fr", getLang("CA"))
+    }
+
+    @Test
+    fun testGetLangForUS() {
+        assertEquals("en", getLang("US"))
+    }
+
+    @Test
+    fun testGetCountryForCA() {
+        assertEquals("CA", getCountry("CA"))
+    }
+
+    @Test
+    fun testGetCountryForUS() {
+        assertEquals("US", getCountry("US"))
+    }
+
+    @Test
+    fun testLocaleToStringForCA() {
+        assertEquals("en-CA", localeToString("CA"))
+        
+        // Test for French
+        Locale.setDefault(Locale("fr"))
+        assertEquals("fr-CA", localeToString("CA"))
+    }
+
+    @Test
+    fun testLocaleToStringForUS() {
+        assertEquals("en-US", localeToString("US"))
+    }
+
+    @Test
+    fun testGetLangForUnknownRegion() {
+        assertEquals("en", getLang("XY"))
+    }
+
+    @Test
+    fun testGetCountryForUnknownRegion() {
+        assertEquals("CA", getCountry("XY"))
+    }
+}
+
+
 // Common code (shared between platforms)
 package com.cibc.services.utilities
 
