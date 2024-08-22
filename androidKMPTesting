@@ -1,46 +1,57 @@
-package com.cibc.app.di
+// Common code (shared between platforms)
+package com.cibc.services.utilities
 
-import android.content.Context
-import com.cibc.services.caching.preferencePlugin.EncryptedPreferencePlugin
-import com.cibc.services.caching.preferencePlugin.EncryptedPreferencePluginImpl
-import io.mockk.mockk
-import org.junit.After
-import org.junit.Before
-import org.junit.Test
-import org.koin.core.context.startKoin
-import org.koin.core.context.stopKoin
-import org.koin.dsl.module
-import org.koin.test.KoinTest
-import org.koin.test.inject
-import kotlin.test.assertTrue
+expect fun getLang(appRegion: String): String
+expect fun getCountry(appRegion: String): String
+expect fun localeToString(appRegion: String): String
 
-class EncryptedPreferencePluginIntegrationTest : KoinTest {
+// Android-specific implementation
+package com.cibc.services.utilities
 
-    private val encryptedPreferencePlugin: EncryptedPreferencePlugin by inject()
+import java.util.Locale
 
-    @Before
-    fun setUp() {
-        val context = mockk<Context>(relaxed = true)
-        
-        startKoin {
-            modules(
-                module {
-                    single { context }
-                },
-                appModule
-            )
-        }
+actual fun getLang(appRegion: String): String {
+    return when (appRegion) {
+        "CA" -> if (Locale.getDefault().language == "fr") "fr" else "en"
+        else -> "en" // Default to English for US and unknown regions
     }
+}
 
-    @After
-    fun tearDown() {
-        stopKoin()
+actual fun getCountry(appRegion: String): String {
+    return when (appRegion) {
+        "US" -> "US"
+        else -> "CA" // Default to CA for CA and unknown regions
     }
+}
 
-    @Test
-    fun `test EncryptedPreferencePlugin is initialized with correct implementation`() {
-        // Verify that the EncryptedPreferencePlugin uses EncryptedPreferencePluginImpl
-        assertTrue(encryptedPreferencePlugin is EncryptedPreferencePlugin)
-        assertTrue(encryptedPreferencePlugin.encryptedPreferencePlugin is EncryptedPreferencePluginImpl)
+actual fun localeToString(appRegion: String): String {
+    val lang = getLang(appRegion)
+    val country = getCountry(appRegion)
+    return "$lang-$country"
+}
+
+
+// iOS-specific implementation
+package com.cibc.services.utilities
+
+import platform.Foundation.NSLocale
+
+actual fun getLang(appRegion: String): String {
+    return when (appRegion) {
+        "CA" -> if (NSLocale.currentLocale.languageCode == "fr") "fr" else "en"
+        else -> "en" // Default to English for US and unknown regions
     }
+}
+
+actual fun getCountry(appRegion: String): String {
+    return when (appRegion) {
+        "US" -> "US"
+        else -> "CA" // Default to CA for CA and unknown regions
+    }
+}
+
+actual fun localeToString(appRegion: String): String {
+    val lang = getLang(appRegion)
+    val country = getCountry(appRegion)
+    return "$lang-$country"
 }
