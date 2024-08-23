@@ -1,123 +1,140 @@
-// AndroidLocaleTest.kt
-package com.cibc.services.utilities
+Based on your requirements and the provided code, here's a detailed Low-Level Design (LLD) document for your Kotlin Multiplatform (KMP) project. This document focuses on the preference caching system, including the use of Koin for dependency injection and testing with a Compose app.
 
-import org.junit.Before
-import org.junit.Test
-import java.util.Locale
-import kotlin.test.assertEquals
+---
 
-class AndroidLocaleTest {
+## Low-Level Design Document
 
-    @Before
-    fun setup() {
-        // Set default locale to English for consistent testing
-        Locale.setDefault(Locale("en"))
-    }
+### Overview
 
-    @Test
-    fun testGetLangForCA() {
-        assertEquals("en", getLang("CA"))
-        
-        // Test for French
-        Locale.setDefault(Locale("fr"))
-        assertEquals("fr", getLang("CA"))
-    }
+This document provides a detailed low-level design for the preference caching system in a Kotlin Multiplatform (KMP) project. The system consists of three main plugins: regular, encrypted, and biometrics-locked preferences. The actual implementation for encryption and biometrics is assumed to be handled on the native Android and iOS platforms.
 
-    @Test
-    fun testGetLangForUS() {
-        assertEquals("en", getLang("US"))
-    }
+### Components
 
-    @Test
-    fun testGetCountryForCA() {
-        assertEquals("CA", getCountry("CA"))
-    }
+1. **Preference Plugins**
+   - Regular Preference Plugin
+   - Encrypted Preference Plugin
+   - Biometrics Preference Plugin
 
-    @Test
-    fun testGetCountryForUS() {
-        assertEquals("US", getCountry("US"))
-    }
+2. **Data Storage**
+   - DataStore for Regular Preferences
+   - Platform-Specific Storage for Encrypted and Biometrics Preferences
 
-    @Test
-    fun testLocaleToStringForCA() {
-        assertEquals("en-CA", localeToString("CA"))
-        
-        // Test for French
-        Locale.setDefault(Locale("fr"))
-        assertEquals("fr-CA", localeToString("CA"))
-    }
+3. **Dependency Injection**
+   - Koin for Dependency Management
 
-    @Test
-    fun testLocaleToStringForUS() {
-        assertEquals("en-US", localeToString("US"))
-    }
+4. **Testing and Integration**
+   - Compose App for Testing
+   - KMP Repository Communication
 
-    @Test
-    fun testGetLangForUnknownRegion() {
-        assertEquals("en", getLang("XY"))
-    }
+### Detailed Design
 
-    @Test
-    fun testGetCountryForUnknownRegion() {
-        assertEquals("CA", getCountry("XY"))
-    }
-}
+#### 1. Preference Plugins
 
+- **PreferencePluginInterface**
+  - **Methods**:
+    - `getPreference(key: String, default: String): String`
+    - `putPreference(key: String, value: String)`
+    - `hasPreference(key: String): Boolean`
+    - `clearPreference(key: String)`
 
-// Common code (shared between platforms)
-package com.cibc.services.utilities
+- **EncryptedPreferencePluginInterface**
+  - **Methods**: Same as `PreferencePluginInterface`
 
-expect fun getLang(appRegion: String): String
-expect fun getCountry(appRegion: String): String
-expect fun localeToString(appRegion: String): String
+- **BiometricsPreferencePluginInterface**
+  - **Methods**: Same as `PreferencePluginInterface`
 
-// Android-specific implementation
-package com.cibc.services.utilities
+#### 2. Data Storage
 
-import java.util.Locale
+- **DataStore (Common)**
+  - **Purpose**: Store regular preferences using `DataStore<Preferences>`.
+  - **Path Configuration**: Path is provided by platform-specific implementations.
 
-actual fun getLang(appRegion: String): String {
-    return when (appRegion) {
-        "CA" -> if (Locale.getDefault().language == "fr") "fr" else "en"
-        else -> "en" // Default to English for US and unknown regions
+- **Platform-Specific Storage**
+  - **Android**: The actual implementation for encrypted and biometrics preferences is assumed to be handled using Android's native capabilities.
+  - **iOS**: The actual implementation for encrypted and biometrics preferences is assumed to be handled using iOS's native capabilities.
+
+#### 3. Dependency Injection with Koin
+
+- **Koin Setup**
+  - **Common Module**: Provides interfaces for preference plugins.
+  - **Platform Modules**: Provide platform-specific implementations.
+
+```kotlin
+// Common Module
+import org.koin.core.module.Module
+import org.koin.dsl.module
+
+fun getCommonModule(): Module {
+    return module {
+        single<PreferencePluginInterface> { PreferencePlugin(get()) }
+        single<EncryptedPreferencePluginInterface> { EncryptedPreferencePlugin(get()) }
+        single<BiometricsPreferencePluginInterface> { BiometricsPreferencePlugin(get()) }
     }
 }
 
-actual fun getCountry(appRegion: String): String {
-    return when (appRegion) {
-        "US" -> "US"
-        else -> "CA" // Default to CA for CA and unknown regions
+expect fun getPlatformDataStore(): DataStore<Preferences>
+```
+
+- **Android Module**:
+  ```kotlin
+  actual fun getPlatformDataStore(): DataStore<Preferences> {
+      // Assume the path is provided by the native Android app
+      return createDataStore { context.filesDir.resolve("preferences.pb").absolutePath }
+  }
+  ```
+
+- **iOS Module**:
+  ```kotlin
+  actual fun getPlatformDataStore(): DataStore<Preferences> {
+      // Assume the path is provided by the native iOS app
+      val documentDirectory = NSFileManager.defaultManager.URLForDirectory(
+          directory = NSDocumentDirectory,
+          inDomain = NSUserDomainMask,
+          appropriateForURL = null,
+          create = false,
+          error = null
+      )
+      return createDataStore { requireNotNull(documentDirectory).path + "/preferences.pb" }
+  }
+  ```
+
+#### 4. Testing and Integration
+
+- **Compose App Integration**
+  - **Purpose**: Test communication between KMP and native layers.
+  - **Setup**: Use the Compose app to interact with KMP preferences and verify functionality.
+
+- **Koin Integration in Compose App**
+  - **Initialization**: Set up Koin in the Compose app to inject dependencies from the KMP module.
+  - **Communication**: Test preference retrieval and storage through the Compose UI.
+
+```kotlin
+class MainApplication : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        startKoin {
+            androidContext(this@MainApplication)
+            modules(getCommonModule())
+        }
     }
 }
+```
 
-actual fun localeToString(appRegion: String): String {
-    val lang = getLang(appRegion)
-    val country = getCountry(appRegion)
-    return "$lang-$country"
-}
+### Component Interactions
 
+1. **Preference Retrieval and Storage**
+   - Regular preferences are accessed via the `PreferencePlugin`.
+   - Encrypted and biometrics preferences use platform-specific implementations.
 
-// iOS-specific implementation
-package com.cibc.services.utilities
+2. **Data Flow**
+   - Data is retrieved from the KMP layer and stored in platform-specific secure storage for encrypted and biometrics preferences.
 
-import platform.Foundation.NSLocale
+3. **Testing with Compose**
+   - Use the Compose app to test the integration of KMP preferences with native storage solutions.
 
-actual fun getLang(appRegion: String): String {
-    return when (appRegion) {
-        "CA" -> if (NSLocale.currentLocale.languageCode == "fr") "fr" else "en"
-        else -> "en" // Default to English for US and unknown regions
-    }
-}
+### Conclusion
 
-actual fun getCountry(appRegion: String): String {
-    return when (appRegion) {
-        "US" -> "US"
-        else -> "CA" // Default to CA for CA and unknown regions
-    }
-}
+This LLD provides a comprehensive view of the preference caching system, focusing on the implementation of regular, encrypted, and biometrics-locked preferences in a KMP project. It details the interactions between components, the use of platform-specific features for secure data storage, and the integration of Koin for dependency management. The Compose app serves as a testing ground for verifying communication between the KMP and native layers, with the actual encryption and biometrics logic implemented natively on Android and iOS.
 
-actual fun localeToString(appRegion: String): String {
-    val lang = getLang(appRegion)
-    val country = getCountry(appRegion)
-    return "$lang-$country"
-}
+Citations:
+[1] https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/23788675/f964a2ca-a970-483c-8911-cedd8a9c0f05/paste.txt
