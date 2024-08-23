@@ -1,3 +1,45 @@
+Based on the provided High-Level Design (HLD) document, there are three main preference plugins in the caching system:
+
+1. Preference Plugin:
+   - Purpose: Store unsecured information like user preferences, flags, and application configurations.
+   - Implementation: Uses a KMP (Kotlin Multiplatform) library to provide a common datasource mechanism for Android and iOS.
+   - Data Storage: Saved in the KMP layer using DataStore.
+   - Key Features:
+     - Returns data based on key to the calling Data Module.
+     - Data is pulled from KMP DataStore.
+     - Can clear all preferences or a specific preference key.
+     - Performs put/get operations on a background thread.
+
+2. Encrypted Preference Plugin:
+   - Purpose: Store secure information that requires encryption.
+   - Implementation: Application plugin requiring native configuration.
+   - Data Storage: Saved in the Native layer.
+   - Key Features:
+     - Returns data based on key to the calling Data Module.
+     - Data is pulled from the Native App.
+     - On iOS, stores data in Secure Enclave.
+     - On Android, uses Encrypted Preferences.
+     - Decryption is done on the native platform.
+     - Supports clearing all stored preferences.
+
+3. Biometrics (Locked) Preference Plugin:
+   - Purpose: Store secure information that requires biometric authentication, such as biometrics login and account-specific configurations.
+   - Implementation: Application plugin requiring native configuration.
+   - Data Storage: Saved in the Native layer (keychain/keystore).
+   - Key Features:
+     - Returns data based on key to the calling Data Module.
+     - Data is pulled from the Native App.
+     - Requires biometric authentication before accessing data.
+     - Supports clearing all keychain/keystore data.
+     - Performs put/get operations on a background thread, with biometric prompts triggered from background and moved to foreground.
+     - Invalidates current stores when biometrics/TouchID/FaceID changes.
+
+Each plugin serves a specific purpose in the caching system, providing different levels of security and functionality for storing preferences in a Kotlin Multiplatform project.
+
+Citations:
+[1] https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/23788675/f964a2ca-a970-483c-8911-cedd8a9c0f05/paste.txt
+
+
 Based on your requirements and the provided code, here's a detailed Low-Level Design (LLD) document for your Kotlin Multiplatform (KMP) project. This document focuses on the preference caching system, including the use of Koin for dependency injection and testing with a Compose app.
 
 ---
