@@ -1,4 +1,26 @@
-plugins {
+Int
+
+roduction (5 minutes)
+Good morning/afternoon everyone. Today, we're diving into KOIN, a powerful yet lightweight dependency injection framework for Kotlin projects, with a focus on its application in Kotlin Multiplatform (KMP) development. We'll be using the hello-kmp repository for our demonstration.
+Dependency injection is a crucial concept in modern software development, especially in Android. It allows us to create more modular, testable, and maintainable code by managing the dependencies between different components of our application. While there are several DI frameworks available, KOIN stands out for its simplicity and Kotlin-first approach.
+What is Dependency Injection? (5 minutes)
+Before we delve into KOIN, let's briefly recap what dependency injection is and why it's important.
+Dependency Injection (DI) is a design pattern where a class receives its dependencies from external sources rather than creating them itself. This approach offers several benefits:
+Improved Modularity: Classes become more independent and easier to reuse.
+Enhanced Testability: We can easily swap dependencies with mocks or stubs for testing.
+Reduced Boilerplate: DI frameworks often handle the creation and lifecycle of objects for us.
+Better Separation of Concerns: Each class can focus on its primary responsibility.
+In Android development, DI is particularly useful due to the framework's complex lifecycle and the need to manage various components like Activities, Fragments, and Services.
+Introduction to KOIN (7 minutes)
+KOIN is a pragmatic dependency injection framework designed specifically for Kotlin. It was created to be simple, lightweight, and easy to understand, even for developers new to DI concepts.
+Key features of KOIN include:
+Kotlin DSL: KOIN uses a Kotlin Domain Specific Language for configuration, making it very readable and concise.
+No Code Generation: Unlike some other DI frameworks, KOIN doesn't use annotation processing or code generation, which can speed up build times.
+Lightweight: KOIN has a small footprint and minimal impact on app size.
+Multiplatform Support: It works across various Kotlin platforms, including Android, iOS, and backend services.
+Scope Management: KOIN allows you to define scopes for your dependencies, making it easy to manage object lifecycles.
+Lazy Injection: Dependencies can be lazily initialized, improving performance.
+Easy Testing: KOIN provides utilities to simplify testing of DI-based code.plugins {
     id("com.cibc.build")
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.compose)
